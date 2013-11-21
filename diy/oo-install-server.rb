@@ -4,6 +4,7 @@ include WEBrick
 
 BIND_ADDRESS=ARGV[0]
 DOCUMENT_ROOT=ARGV[1]
+MAIN_SITE='install.openshift.com'
 
 @config = {
   :Port => 8080,
@@ -13,8 +14,17 @@ DOCUMENT_ROOT=ARGV[1]
 
 class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
   def do_GET(req,res)
+    using_curl = req.header['user-agent'].select{ |agent| agent.match(/^curl/) }.length > 0
+    if not req.host == MAIN_SITE or not is_https?(req)
+      if using_curl
+        res.body = "#!/bin/sh\necho '\nThanks for your interest in OpenShift!\n\noo-install has moved on up to https://#{MAIN_SITE}/\nTo proceed, rerun your command as:\n\n\tsh <(curl -s https://#{MAIN_SITE}#{req.path})\n'; exit\n"
+        raise WEBrick::HTTPStatus::OK
+      else
+        res.set_redirect(WEBrick::HTTPStatus[301], "https://#{MAIN_SITE}#{req.path}")
+      end
+    end
     # The zip files are always served normally, curl is always served normally
-    if req.path.end_with?('.zip') or req.path.end_with?('.ico') or req.path.end_with?('.css') or req.header['user-agent'].select{ |agent| agent.match(/^curl/) }.length > 0
+    if using_curl or req.path.end_with?('.zip') or req.path.end_with?('.ico') or req.path.end_with?('.css')
       file_handler.do_GET(req,res)
     else
       res.content_type = 'text/html'
@@ -35,6 +45,10 @@ class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
       end
       text
     end
+  end
+
+  def is_https?(req)
+    req.request_uri.scheme == 'https' or (req.header.has_key?('x-forwarded-proto') and req.header['x-forwarded-proto'].select{ |proto| proto == 'https' }.length > 0)
   end
 
   alias :do_POST :do_GET
