@@ -14,7 +14,7 @@ DOCUMENT_ROOT=ARGV[1]
 class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
   def do_GET(req,res)
     # The zip files are always served normally, curl is always served normally
-    if req.path.end_with?('.zip') or req.path.end_with?('.ico') or req.header['user-agent'].select{ |agent| agent.match(/^curl/) }.length > 0
+    if req.path.end_with?('.zip') or req.path.end_with?('.ico') or req.path.end_with?('.css') or req.header['user-agent'].select{ |agent| agent.match(/^curl/) }.length > 0
       file_handler.do_GET(req,res)
     else
       res.content_type = 'text/html'
