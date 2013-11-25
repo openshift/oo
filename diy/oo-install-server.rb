@@ -15,6 +15,8 @@ MAIN_SITE='install.openshift.com'
 class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
   def do_GET(req,res)
     using_curl = req.header['user-agent'].select{ |agent| agent.match(/^curl/) }.length > 0
+
+    # Intercept traffic for redirect
     if not req.host == MAIN_SITE or not is_https?(req)
       if using_curl
         res.body = "#!/bin/sh\necho '\nThanks for your interest in OpenShift!\n\noo-install has moved on up to https://#{MAIN_SITE}/\nTo proceed, rerun your command as:\n\n\tsh <(curl -s https://#{MAIN_SITE}#{req.path})\n'; exit\n"
@@ -23,9 +25,21 @@ class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
         res.set_redirect(WEBrick::HTTPStatus[301], "https://#{MAIN_SITE}#{req.path}")
       end
     end
+
     # The zip files are always served normally, curl is always served normally
     if using_curl or req.path.end_with?('.zip') or req.path.end_with?('.ico') or req.path.end_with?('.css')
-      file_handler.do_GET(req,res)
+      # Intercept directory requests
+      if not req.path.end_with?('/') and File.directory?(DOCUMENT_ROOT + req.path)
+        file_txt = []
+        File.open(DOCUMENT_ROOT + "#{req.path}/index.html").each_line do |line|
+          file_txt << line
+        end
+        res.content_type = 'text'
+        res.body = file_txt.join("\n")
+        raise WEBrick::HTTPStatus::OK
+      else
+        file_handler.do_GET(req,res)
+      end
     else
       res.content_type = 'text/html'
       res.body = site_info
