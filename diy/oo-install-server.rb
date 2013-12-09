@@ -27,7 +27,7 @@ class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
     end
 
     # The zip files are always served normally, curl is always served normally
-    if using_curl or req.path.end_with?('.zip') or req.path.end_with?('.ico') or req.path.end_with?('.css')
+    if using_curl or servable_path?(req.path)
       # Intercept directory requests
       if not req.path.end_with?('/') and File.directory?(DOCUMENT_ROOT + req.path)
         file_txt = []
@@ -36,6 +36,10 @@ class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
         end
         res.content_type = 'text'
         res.body = file_txt.join("\n")
+        raise WEBrick::HTTPStatus::OK
+      elsif req.path.end_with?('.svg')
+        res.content_type = 'image/svg+xml'
+        res.body = site_logo
         raise WEBrick::HTTPStatus::OK
       else
         file_handler.do_GET(req,res)
@@ -59,6 +63,25 @@ class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
       end
       text
     end
+  end
+
+  def site_logo
+    @site_logo || begin
+      text = ''
+      File.open(DOCUMENT_ROOT + '/openshift-logo-horizontal-99a90035cbd613be7b6293335eb05563.svg', 'r') do |fh|
+        fh.each_line{ |line| text << line }
+      end
+      text
+    end
+  end
+
+  def servable_path?(path)
+    @logger.info("PATH: #{path.inspect}")
+    ['zip','ico','css','svg'].each do |ext|
+      next if not path.end_with?(".#{ext}")
+      return true
+    end
+    return false
   end
 
   def is_https?(req)
