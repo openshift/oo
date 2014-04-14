@@ -4,7 +4,13 @@ include WEBrick
 
 BIND_ADDRESS=ARGV[0]
 DOCUMENT_ROOT=ARGV[1]
-MAIN_SITE='install.openshift.com'
+APP_URL=ARGV[2]
+
+if APP_URL == 'oo-install.rhcloud.com'
+  MAIN_SITE='install.openshift.com'
+else
+  MAIN_SITE=APP_URL
+end
 
 @config = {
   :Port => 8080,
