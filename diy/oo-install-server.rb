@@ -83,7 +83,7 @@ class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
 
   def servable_path?(path)
     @logger.info("PATH: #{path.inspect}")
-    ['zip','ico','css','svg'].each do |ext|
+    ['tgz','zip','ico','css','svg'].each do |ext|
       next if not path.end_with?(".#{ext}")
       return true
     end
