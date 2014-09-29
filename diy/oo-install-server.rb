@@ -32,7 +32,7 @@ class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
       end
     end
 
-    # The zip files are always served normally, curl is always served normally
+    # The tgz files are always served normally, curl is always served normally
     if using_curl or servable_path?(req.path)
       # Intercept directory requests
       if not req.path.end_with?('/') and File.directory?(DOCUMENT_ROOT + req.path)
@@ -83,7 +83,7 @@ class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
 
   def servable_path?(path)
     @logger.info("PATH: #{path.inspect}")
-    ['zip','ico','css','svg'].each do |ext|
+    ['tgz','ico','css','svg'].each do |ext|
       next if not path.end_with?(".#{ext}")
       return true
     end
