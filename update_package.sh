@@ -42,7 +42,7 @@ if $USE_LOCAL_SCRIPT; then
   ARGS+=" USE_LOCAL_SCRIPT=1"
 fi
 
-cd ../openshift-extras/oo-install && bundle exec rake package $ARGS
+cd ../openshift-extras/oo-install && bundle _1.3.5_ exec rake package $ARGS
 cd ../../oo/
 ssh oo-install 'rm -rf $OPENSHIFT_DATA_DIR/*'
 scp -r ../openshift-extras/oo-install/package/* oo-install:/var/lib/openshift/${OO_APP_USER}/app-root/data/
