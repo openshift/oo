@@ -82,11 +82,9 @@ bundle _1.3.5_ exec rake package $ARGS
 
 popd
 
-echo "Removing existing deployment files..."
-ssh ${SSH_HOST} 'rm -rf app-root/data/*'
-
 echo "Copying new deployment files to app..."
-scp -r ../openshift-extras/oo-install/package/* ${SSH_HOST}:app-root/data/
+rsync_options='-avH -e ssh --delete-delay --delay-updates --progress --no-p --no-g --omit-dir-times'
+rsync ${rsync_options} ../openshift-extras/oo-install/package/ ${SSH_HOST}:app-root/data/
 
 echo "Restarting app..."
 ssh ${SSH_HOST} 'gear restart --cart diy'
