@@ -48,6 +48,12 @@ class InstallerServlet < WEBrick::HTTPServlet::AbstractServlet
         res.body = site_logo
         raise WEBrick::HTTPStatus::OK
       else
+        # Browsers are requesting gzip and deflate encoding.  All the files we
+        # serve are already compressed.  Also, if the Node proxy re-encodes it
+        # it will break our tar instructions.
+        unless req.header['accept-encoding'].empty?
+          res.header['content-encoding'] = "gzip"
+        end
         file_handler.do_GET(req,res)
       end
     else
