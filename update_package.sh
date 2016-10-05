@@ -78,7 +78,7 @@ fi
 
 echo "Generating packages for deployment..."
 pushd ../openshift-extras/oo-install
-bundle _1.7.8_ exec rake package $ARGS
+bundle _1.10.6_ exec rake package $ARGS
 
 popd
 
